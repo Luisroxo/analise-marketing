@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { FormSection } from "./form/FormSection";
 import { FormQuestion } from "./form/FormQuestion";
 import { TextInput } from "./form/inputs/TextInput";
@@ -84,6 +85,7 @@ export const MarketingAnalysisForm = () => {
   const [formData, setFormData] = useState<FormData>(initialFormData);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
+  const navigate = useNavigate();
 
   const sections = [
     {
@@ -176,19 +178,106 @@ export const MarketingAnalysisForm = () => {
   const handleSubmit = async () => {
     setIsSubmitting(true);
     try {
-      // Simular envio do formulário
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      // URL do webhook - substitua pela URL do ngrok quando testar localmente
+      const webhookUrl = process.env.NODE_ENV === 'development' 
+        ? 'https://seu-ngrok-url.ngrok.app/webhook' // Para desenvolvimento local
+        : 'https://seu-servidor-producao.com/webhook'; // Para produção
+      
+      // Preparar dados no formato esperado pelo backend
+      const submitData = {
+        timestamp: new Date().toISOString(),
+        source: 'lovable_form',
+        data: {
+          // Seção 1: Fundamentos
+          nome_empresa: formData.companyName,
+          tipo_negocio: formData.businessType,
+          proposta_valor: formData.valueProposition,
+          ano_fundacao: formData.foundationYear,
+          alcance_clientes: formData.customerReach,
+          
+          // Seção 2: Objetivos
+          objetivo_principal: Array.isArray(formData.mainObjective) 
+            ? formData.mainObjective.join(', ') 
+            : formData.mainObjective,
+          meta_crescimento: formData.growthGoal,
+          
+          // Seção 3: Clientes
+          cliente_ideal: formData.idealCustomer,
+          como_encontram: Array.isArray(formData.howCustomersFind) 
+            ? formData.howCustomersFind.join(', ') 
+            : formData.howCustomersFind,
+          motivo_escolha: formData.mainReason,
+          problema_resolve: formData.problemSolved,
+          
+          // Seção 4: Satisfação
+          nivel_satisfacao: formData.satisfactionLevel,
+          probabilidade_indicacao: formData.recommendationProbability,
+          
+          // Seção 5: Concorrência
+          principais_concorrentes: formData.mainCompetitors,
+          principal_diferencial: formData.mainDifferential,
+          marketing_concorrentes: Array.isArray(formData.competitorMarketing) 
+            ? formData.competitorMarketing.join(', ') 
+            : formData.competitorMarketing,
+          
+          // Seção 6: Vendas
+          canais_venda: Array.isArray(formData.salesChannels) 
+            ? formData.salesChannels.join(', ') 
+            : formData.salesChannels,
+          melhor_canal: formData.bestChannel,
+          marketing_atual: Array.isArray(formData.currentMarketing) 
+            ? formData.currentMarketing.join(', ') 
+            : formData.currentMarketing,
+          
+          // Seção 7: Digital
+          presenca_online: Array.isArray(formData.onlinePresence) 
+            ? formData.onlinePresence.join(', ') 
+            : formData.onlinePresence,
+          links_sociais: formData.socialLinks,
+          ferramentas_digitais: Array.isArray(formData.digitalTools) 
+            ? formData.digitalTools.join(', ') 
+            : formData.digitalTools,
+          
+          // Seção 8: Finais
+          contato_preferido: formData.preferredContact,
+          informacoes_extras: formData.extraInfo
+        }
+      };
+
+      // Enviar para o webhook
+      const response = await fetch(webhookUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
+        body: JSON.stringify(submitData)
+      });
+
+      if (!response.ok) {
+        throw new Error(`Erro HTTP: ${response.status}`);
+      }
+
+      const result = await response.json();
       
       toast({
-        title: "Formulário enviado com sucesso! 🎉",
-        description: "Sua análise de marketing foi recebida. Entraremos em contato em breve.",
+        title: "Análise enviada com sucesso! 🎉",
+        description: "Sua análise foi recebida e processada. Entraremos em contato em breve!",
       });
       
-      console.log("Form Data:", formData);
+      console.log("Formulário enviado com sucesso:", result);
+      
+      // Redirecionar para página de sucesso após 1.5 segundos
+      setTimeout(() => {
+        navigate("/sucesso");
+      }, 1500);
+      
     } catch (error) {
+      console.error("Erro ao enviar formulário:", error);
+      
       toast({
-        title: "Erro ao enviar formulário",
-        description: "Tente novamente ou entre em contato conosco.",
+        title: "Erro ao enviar análise",
+        description: "Ocorreu um problema ao enviar sua análise. Tente novamente ou entre em contato conosco.",
         variant: "destructive"
       });
     } finally {

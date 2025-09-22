@@ -1,4 +1,60 @@
-# Welcome to your Lovable project
+# Formulário de Análise de Marketing - Lovable.dev
+
+## 🚀 **FORMULÁRIO PROFISSIONAL INTEGRADO COM WEBHOOK**
+
+Formulário React completo para análise de marketing empresarial, totalmente integrado com sistema de webhook para processamento automático dos dados.
+
+## 🎯 **Características**
+
+✅ **Visual extremamente profissional** - Interface moderna e responsiva
+✅ **8 seções organizadas** - 24 perguntas estratégicas otimizadas
+✅ **Integração com webhook** - Envio automático para sistema de análise
+✅ **Página de sucesso** - UX completa com próximos passos
+✅ **URL gratuita** - `analise-marketing.lovable.app`
+✅ **Deploy automático** - Atualizações instantâneas
+
+## 🔧 **Configuração do Webhook**
+
+### **1. Desenvolvimento Local**
+
+1. **Configure o ngrok** para expor seu webhook local:
+```bash
+ngrok http 5000
+```
+
+2. **Copie a URL gerada** (ex: `https://abc123.ngrok.app`)
+
+3. **Atualize o arquivo** `src/components/MarketingAnalysisForm.tsx`:
+```tsx
+const webhookUrl = 'https://abc123.ngrok.app/webhook'; // Linha ~185
+```
+
+### **2. Produção**
+
+Substitua a URL na mesma linha pela URL do seu servidor em produção.
+
+### **3. Configurar WhatsApp**
+
+No arquivo `src/pages/Success.tsx`, linha 10:
+```tsx
+const phoneNumber = "5511999999999"; // Substitua pelo seu número
+```
+
+## 📊 **Estrutura dos Dados Enviados**
+
+O webhook recebe dados neste formato JSON:
+```json
+{
+  "timestamp": "2024-01-15T10:30:00.000Z",
+  "source": "lovable_form", 
+  "data": {
+    "nome_empresa": "Minha Empresa LTDA",
+    "tipo_negocio": "Loja Física",
+    "proposta_valor": "Ajudamos pequenos empresários...",
+    // ... todos os 24 campos do formulário
+  }
+}
+```
 
 ## Project info
 
