@@ -138,11 +138,21 @@ export const MarketingAnalysisForm = () => {
     const currentFields = sections[currentSection].fields;
     const requiredFields = getRequiredFields(currentSection);
     
+    console.log("🔍 Debug validação:", {
+      currentSection,
+      requiredFields,
+      formData: Object.fromEntries(
+        requiredFields.map(field => [field, formData[field as keyof FormData]])
+      )
+    });
+    
     return requiredFields.every(field => {
       const value = formData[field as keyof FormData];
       if (Array.isArray(value)) {
+        console.log(`Array field ${field}:`, value, "length:", value.length);
         return value.length > 0;
       }
+      console.log(`Single field ${field}:`, value);
       return value !== "" && value !== null && value !== undefined;
     });
   };
