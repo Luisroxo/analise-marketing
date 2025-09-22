@@ -13,32 +13,80 @@ Formulário React completo para análise de marketing empresarial, totalmente in
 ✅ **URL gratuita** - `analise-marketing.lovable.app`
 ✅ **Deploy automático** - Atualizações instantâneas
 
-## 🔧 **Configuração do Webhook**
+## 🔧 **Configuração do Webhook e Variáveis (.env)**
 
-### **1. Desenvolvimento Local**
+Agora o formulário lê a URL do webhook de `import.meta.env.VITE_WEBHOOK_URL`.
 
-1. **Configure o ngrok** para expor seu webhook local:
+### 1. Criar `.env` local
+
+Crie um arquivo `.env` na raiz do projeto (já existe exemplo):
+
+```
+VITE_WEBHOOK_URL=http://localhost:5000/webhook
+VITE_WHATSAPP_NUMBER=5511999999999
+```
+
+### 2. Subir backend local (exemplo rápido Python)
+
+Crie `webhook_server.py` (exemplo simples sem dependências externas):
+
+```python
+from http.server import BaseHTTPRequestHandler, HTTPServer
+import json, time
+
+class Handler(BaseHTTPRequestHandler):
+  def do_POST(self):
+    if self.path != '/webhook':
+      self.send_response(404); self.end_headers(); return
+    length = int(self.headers.get('content-length', 0))
+    body = self.rfile.read(length) if length else b''
+    try:
+      data = json.loads(body.decode('utf-8'))
+    except Exception:
+      data = {'raw': body.decode('utf-8', 'ignore')}
+    print('\n=== Payload recebido ===')
+    print(json.dumps(data, ensure_ascii=False, indent=2))
+    print('Timestamp server:', time.strftime('%Y-%m-%d %H:%M:%S'))
+    # Resposta
+    resp = {'status': 'ok', 'received': True}
+    resp_bytes = json.dumps(resp).encode('utf-8')
+    self.send_response(200)
+    self.send_header('Content-Type', 'application/json')
+    self.send_header('Content-Length', str(len(resp_bytes)))
+    self.send_header('Access-Control-Allow-Origin', '*')
+    self.end_headers()
+    self.wfile.write(resp_bytes)
+
+if __name__ == '__main__':
+  print('Servidor webhook ouvindo em http://localhost:5000/webhook')
+  HTTPServer(('0.0.0.0', 5000), Handler).serve_forever()
+```
+
+Execute:
+```bash
+python webhook_server.py
+```
+
+### 3. Expor com ngrok (opcional para testes externos)
 ```bash
 ngrok http 5000
 ```
+Copie a URL HTTPS gerada e atualize no `.env`:
+```
+VITE_WEBHOOK_URL=https://seu-subdominio.ngrok.app/webhook
+```
+Reinicie `npm run dev` (Vite precisa reler variáveis).
 
-2. **Copie a URL gerada** (ex: `https://abc123.ngrok.app`)
+### 4. Produção
 
-3. **Atualize o arquivo** `src/components/MarketingAnalysisForm.tsx`:
-```tsx
-const webhookUrl = 'https://abc123.ngrok.app/webhook'; // Linha ~185
+Defina `VITE_WEBHOOK_URL` com a URL real do backend (por exemplo em provedor / secrets de deploy) e faça build:
+```bash
+npm run build && npm run preview
 ```
 
-### **2. Produção**
+### 5. WhatsApp na página de sucesso
 
-Substitua a URL na mesma linha pela URL do seu servidor em produção.
-
-### **3. Configurar WhatsApp**
-
-No arquivo `src/pages/Success.tsx`, linha 10:
-```tsx
-const phoneNumber = "5511999999999"; // Substitua pelo seu número
-```
+O número usado no botão é lido de `VITE_WHATSAPP_NUMBER`. Basta alterar no `.env`.
 
 ## 📊 **Estrutura dos Dados Enviados**
 
@@ -55,6 +103,8 @@ O webhook recebe dados neste formato JSON:
   }
 }
 ```
+
+Observação: arrays multi-seleção são enviados como string única (itens separados por vírgula) para simplificar ingestão inicial. Você pode ajustar no backend conforme necessidade.
 
 ## Project info
 
