@@ -19,7 +19,7 @@ interface FormData {
   customerReach: string;
   
   // Seção 2: Objetivos
-  mainObjective: string;
+  mainObjective: string[];
   growthGoal: string;
   
   // Seção 3: Clientes
@@ -58,7 +58,7 @@ const initialFormData: FormData = {
   valueProposition: "",
   foundationYear: 2020,
   customerReach: "",
-  mainObjective: "",
+  mainObjective: [],
   growthGoal: "",
   idealCustomer: "",
   howCustomersFind: [],
@@ -418,6 +418,7 @@ export const MarketingAnalysisForm = () => {
               value={formData.mainObjective}
               onChange={(value) => updateFormData("mainObjective", value)}
               options={mainObjectiveOptions}
+              multiple={true}
             />
           </FormQuestion>
 
