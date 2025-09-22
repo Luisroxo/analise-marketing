@@ -84,6 +84,7 @@ export const MarketingAnalysisForm = () => {
   const [currentSection, setCurrentSection] = useState(0);
   const [formData, setFormData] = useState<FormData>(initialFormData);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [validationError, setValidationError] = useState<string | null>(null);
   const { toast } = useToast();
   const navigate = useNavigate();
 
@@ -172,8 +173,28 @@ export const MarketingAnalysisForm = () => {
   };
 
   const handleNext = () => {
+    // Limpa erro anterior
+    setValidationError(null);
+    const requiredFields = getRequiredFields(currentSection);
+    const missing = requiredFields.filter(field => {
+      const value = formData[field as keyof FormData];
+      if (Array.isArray(value)) return value.length === 0;
+      return value === "" || value === null || value === undefined;
+    });
+
+    if (missing.length > 0) {
+      setValidationError(`Preencha: ${missing.map(m => mapFieldToLabel(m)).join(', ')}`);
+      toast({
+        title: "Campos obrigatórios faltando",
+        description: "Complete os campos destacados antes de avançar.",
+        variant: "destructive"
+      });
+      return;
+    }
+
     if (currentSection < sections.length - 1) {
       setCurrentSection(prev => prev + 1);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     } else {
       handleSubmit();
     }
@@ -438,6 +459,34 @@ export const MarketingAnalysisForm = () => {
     "Instagram Direct",
     "Outros"
   ];
+
+  const mapFieldToLabel = (field: string) => {
+    const labels: Record<string, string> = {
+      companyName: 'Nome da empresa',
+      businessType: 'Tipo do negócio',
+      valueProposition: 'Proposta de valor',
+      foundationYear: 'Ano de fundação',
+      customerReach: 'Alcance dos clientes',
+      mainObjective: 'Objetivo principal',
+      growthGoal: 'Meta de crescimento',
+      idealCustomer: 'Cliente ideal',
+      howCustomersFind: 'Como encontram',
+      mainReason: 'Motivo da escolha',
+      problemSolved: 'Problema resolvido',
+      satisfactionLevel: 'Nível de satisfação',
+      recommendationProbability: 'Probabilidade de indicação',
+      mainCompetitors: 'Principais concorrentes',
+      mainDifferential: 'Principal diferencial',
+      competitorMarketing: 'Marketing dos concorrentes',
+      salesChannels: 'Canais de venda',
+      bestChannel: 'Canal que mais vende',
+      currentMarketing: 'Marketing atual',
+      onlinePresence: 'Presença online',
+      digitalTools: 'Ferramentas digitais',
+      preferredContact: 'Melhor forma de contato'
+    };
+    return labels[field] || field;
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-muted/30 to-background py-8 px-4">
@@ -769,6 +818,12 @@ export const MarketingAnalysisForm = () => {
             />
           </FormQuestion>
         </FormSection>
+
+        {validationError && (
+          <div className="max-w-4xl mx-auto mt-4 mb-2 p-4 rounded-md bg-destructive/10 border border-destructive text-sm text-destructive">
+            {validationError}
+          </div>
+        )}
 
         <NavigationButtons
           currentSection={currentSection}
