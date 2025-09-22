@@ -208,109 +208,122 @@ export const MarketingAnalysisForm = () => {
 
   const handleSubmit = async () => {
     setIsSubmitting(true);
+
+    // Helper para timeout
+    const fetchWithTimeout = async (input: RequestInfo | URL, init: RequestInit & { timeout?: number } = {}) => {
+      const { timeout = 15000, ...rest } = init;
+      const controller = new AbortController();
+      const id = setTimeout(() => controller.abort(), timeout);
+      try {
+        return await fetch(input, { ...rest, signal: controller.signal });
+      } finally {
+        clearTimeout(id);
+      }
+    };
+
     try {
-      // URL do webhook - substitua pela URL do ngrok quando testar localmente
-      const webhookUrl = process.env.NODE_ENV === 'development' 
-        ? 'https://seu-ngrok-url.ngrok.app/webhook' // Para desenvolvimento local
-        : 'https://seu-servidor-producao.com/webhook'; // Para produção
+      // Lê URL do webhook de variável de ambiente
+      const webhookUrl = (import.meta as any).env?.VITE_WEBHOOK_URL?.trim();
+
+      if (!webhookUrl) {
+        throw new Error("WEBHOOK_URL_NAO_CONFIGURADA");
+      }
+      if (webhookUrl.includes("seu-ngrok-url") || webhookUrl.includes("seu-servidor-producao")) {
+        throw new Error("WEBHOOK_URL_PLACEHOLDER");
+      }
+      try {
+        new URL(webhookUrl);
+      } catch {
+        throw new Error("WEBHOOK_URL_INVALIDA");
+      }
       
-      // Preparar dados no formato esperado pelo backend
       const submitData = {
         timestamp: new Date().toISOString(),
         source: 'lovable_form',
         data: {
-          // Seção 1: Fundamentos
           nome_empresa: formData.companyName,
           tipo_negocio: formData.businessType,
           proposta_valor: formData.valueProposition,
           ano_fundacao: formData.foundationYear,
           alcance_clientes: formData.customerReach,
-          
-          // Seção 2: Objetivos
-          objetivo_principal: Array.isArray(formData.mainObjective) 
-            ? formData.mainObjective.join(', ') 
-            : formData.mainObjective,
+          objetivo_principal: Array.isArray(formData.mainObjective) ? formData.mainObjective.join(', ') : formData.mainObjective,
           meta_crescimento: formData.growthGoal,
-          
-          // Seção 3: Clientes
           cliente_ideal: formData.idealCustomer,
-          como_encontram: Array.isArray(formData.howCustomersFind) 
-            ? formData.howCustomersFind.join(', ') 
-            : formData.howCustomersFind,
+            como_encontram: Array.isArray(formData.howCustomersFind) ? formData.howCustomersFind.join(', ') : formData.howCustomersFind,
           motivo_escolha: formData.mainReason,
           problema_resolve: formData.problemSolved,
-          
-          // Seção 4: Satisfação
           nivel_satisfacao: formData.satisfactionLevel,
           probabilidade_indicacao: formData.recommendationProbability,
-          
-          // Seção 5: Concorrência
           principais_concorrentes: formData.mainCompetitors,
           principal_diferencial: formData.mainDifferential,
-          marketing_concorrentes: Array.isArray(formData.competitorMarketing) 
-            ? formData.competitorMarketing.join(', ') 
-            : formData.competitorMarketing,
-          
-          // Seção 6: Vendas
-          canais_venda: Array.isArray(formData.salesChannels) 
-            ? formData.salesChannels.join(', ') 
-            : formData.salesChannels,
+          marketing_concorrentes: Array.isArray(formData.competitorMarketing) ? formData.competitorMarketing.join(', ') : formData.competitorMarketing,
+          canais_venda: Array.isArray(formData.salesChannels) ? formData.salesChannels.join(', ') : formData.salesChannels,
           melhor_canal: formData.bestChannel,
-          marketing_atual: Array.isArray(formData.currentMarketing) 
-            ? formData.currentMarketing.join(', ') 
-            : formData.currentMarketing,
-          
-          // Seção 7: Digital
-          presenca_online: Array.isArray(formData.onlinePresence) 
-            ? formData.onlinePresence.join(', ') 
-            : formData.onlinePresence,
+          marketing_atual: Array.isArray(formData.currentMarketing) ? formData.currentMarketing.join(', ') : formData.currentMarketing,
+          presenca_online: Array.isArray(formData.onlinePresence) ? formData.onlinePresence.join(', ') : formData.onlinePresence,
           links_sociais: formData.socialLinks,
-          ferramentas_digitais: Array.isArray(formData.digitalTools) 
-            ? formData.digitalTools.join(', ') 
-            : formData.digitalTools,
-          
-          // Seção 8: Finais
+          ferramentas_digitais: Array.isArray(formData.digitalTools) ? formData.digitalTools.join(', ') : formData.digitalTools,
           contato_preferido: formData.preferredContact,
           informacoes_extras: formData.extraInfo
         }
       };
 
-      // Enviar para o webhook
-      const response = await fetch(webhookUrl, {
+      const response = await fetchWithTimeout(webhookUrl, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json'
-        },
-        body: JSON.stringify(submitData)
+        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+        body: JSON.stringify(submitData),
+        timeout: 15000
       });
 
       if (!response.ok) {
-        throw new Error(`Erro HTTP: ${response.status}`);
+        let bodyText = '';
+        try { bodyText = await response.text(); } catch {}
+        throw new Error(`HTTP_${response.status}_${response.statusText}::${bodyText.slice(0,200)}`);
       }
 
-      const result = await response.json();
-      
+      let result: any = null;
+      try {
+        result = await response.json();
+      } catch {
+        // servidor pode não retornar JSON
+        result = { raw: 'Sem corpo JSON retornado' };
+      }
+
+      console.log('✅ Envio concluído:', result);
       toast({
-        title: "Análise enviada com sucesso! 🎉",
-        description: "Sua análise foi recebida e processada. Entraremos em contato em breve!",
+        title: 'Análise enviada com sucesso! 🎉',
+        description: 'Sua análise foi recebida. Entraremos em contato em breve.'
       });
-      
-      console.log("Formulário enviado com sucesso:", result);
-      
-      // Redirecionar para página de sucesso após 1.5 segundos
-      setTimeout(() => {
-        navigate("/sucesso");
-      }, 1500);
-      
-    } catch (error) {
-      console.error("Erro ao enviar formulário:", error);
-      
+
+      setTimeout(() => navigate('/sucesso'), 1200);
+    } catch (error: any) {
+      console.error('❌ Erro ao enviar formulário:', error);
+
+      let userMessage = 'Ocorreu um problema ao enviar sua análise.';
+      if (error?.message === 'WEBHOOK_URL_NAO_CONFIGURADA') {
+        userMessage = 'Webhook não configurado. Defina VITE_WEBHOOK_URL antes de enviar.';
+      } else if (error?.message === 'WEBHOOK_URL_PLACEHOLDER') {
+        userMessage = 'Configure a URL real do webhook (ngrok ou produção).';
+      } else if (error?.message === 'WEBHOOK_URL_INVALIDA') {
+        userMessage = 'URL do webhook inválida.';
+      } else if (error?.name === 'AbortError') {
+        userMessage = 'Tempo de espera excedido (timeout). Tente novamente.';
+      } else if (error?.message?.startsWith('HTTP_')) {
+        userMessage = 'Servidor respondeu com erro. Verifique o backend.';
+      }
+
       toast({
-        title: "Erro ao enviar análise",
-        description: "Ocorreu um problema ao enviar sua análise. Tente novamente ou entre em contato conosco.",
-        variant: "destructive"
+        title: 'Erro ao enviar análise',
+        description: userMessage,
+        variant: 'destructive'
       });
+
+      if ((import.meta as any).env?.DEV) {
+        // Mostrar detalhes no console somente em dev
+        console.group('Detalhes técnicos');
+        console.error(error);
+        console.groupEnd();
+      }
     } finally {
       setIsSubmitting(false);
     }
