@@ -15,7 +15,7 @@ interface FormData {
   // Seção 1: Fundamentos
   companyName: string;
   businessType: string[];
-  businessTypeDetails: string;
+  businessTypeDetails: { [key: string]: string };
   valueProposition: string;
   foundationYear: number;
   customerReach: string;
@@ -57,7 +57,7 @@ interface FormData {
 const initialFormData: FormData = {
   companyName: "",
   businessType: [],
-  businessTypeDetails: "",
+  businessTypeDetails: {},
   valueProposition: "",
   foundationYear: 2020,
   customerReach: "",
@@ -245,7 +245,7 @@ export const MarketingAnalysisForm = () => {
         data: {
           nome_empresa: formData.companyName,
           tipo_negocio: Array.isArray(formData.businessType) ? formData.businessType.join(', ') : formData.businessType,
-          detalhes_tipo_negocio: formData.businessTypeDetails,
+          detalhes_tipos_negocio: JSON.stringify(formData.businessTypeDetails),
           proposta_valor: formData.valueProposition,
           ano_fundacao: formData.foundationYear,
           alcance_clientes: formData.customerReach,
@@ -330,6 +330,29 @@ export const MarketingAnalysisForm = () => {
     } finally {
       setIsSubmitting(false);
     }
+  };
+
+  const businessTypeExamples: { [key: string]: string } = {
+    "Loja Física": "Ex: Loja de roupas no centro da cidade, 50m², aberta desde 2020",
+    "Serviços": "Ex: Consultoria contábil para pequenas empresas, atendimento presencial e remoto",
+    "Loja Virtual/E-commerce": "Ex: Venda de produtos artesanais via Instagram e site próprio",
+    "Produtos Digitais": "Ex: Cursos online de marketing digital, ebooks sobre empreendedorismo",
+    "Consultoria": "Ex: Consultoria em gestão empresarial para médias empresas do setor industrial",
+    "Restaurante/Alimentação": "Ex: Restaurante italiano familiar, 40 lugares, delivery próprio",
+    "Beleza/Estética": "Ex: Salão de beleza completo, especializado em cortes femininos e coloração",
+    "Saúde/Bem-estar": "Ex: Clínica de fisioterapia com foco em reabilitação esportiva",
+    "Educação": "Ex: Escola de idiomas para crianças e adolescentes, método personalizado",
+    "Outros": "Ex: Descreva detalhadamente seu tipo de negócio e principais características"
+  };
+
+  const updateBusinessTypeDetails = (businessType: string, details: string) => {
+    setFormData(prev => ({
+      ...prev,
+      businessTypeDetails: {
+        ...prev.businessTypeDetails,
+        [businessType]: details
+      }
+    }));
   };
 
   const businessTypeOptions = [
@@ -533,25 +556,29 @@ export const MarketingAnalysisForm = () => {
           </FormQuestion>
 
           <FormQuestion title="🎯 Tipo do seu negócio" description="Selecione as categorias que melhor descrevem sua empresa" required>
-            <div className="flex gap-6 items-start">
-              <div className="flex-1">
-                <MultipleChoiceInput
-                  value={formData.businessType}
-                  onChange={(value) => updateFormData("businessType", value)}
-                  options={businessTypeOptions}
-                  multiple={true}
-                />
-              </div>
+            <div className="space-y-4">
+              <MultipleChoiceInput
+                value={formData.businessType}
+                onChange={(value) => updateFormData("businessType", value)}
+                options={businessTypeOptions}
+                multiple={true}
+              />
+              
               {formData.businessType.length > 0 && (
-                <div className="flex-1">
-                  <label className="block text-sm font-medium text-foreground mb-2">
-                    Descreva brevemente:
-                  </label>
-                  <TextInput
-                    value={formData.businessTypeDetails}
-                    onChange={(value) => updateFormData("businessTypeDetails", value)}
-                    placeholder="Ex: Loja de roupas femininas com foco em sustentabilidade"
-                  />
+                <div className="space-y-4 p-4 bg-muted/30 rounded-lg border">
+                  <h4 className="text-sm font-medium text-foreground">Descreva cada tipo de negócio selecionado:</h4>
+                  {formData.businessType.map((businessType) => (
+                    <div key={businessType} className="space-y-2">
+                      <label className="block text-sm font-medium text-foreground">
+                        {businessType}:
+                      </label>
+                      <TextInput
+                        value={formData.businessTypeDetails[businessType] || ""}
+                        onChange={(value) => updateBusinessTypeDetails(businessType, value)}
+                        placeholder={businessTypeExamples[businessType]}
+                      />
+                    </div>
+                  ))}
                 </div>
               )}
             </div>
