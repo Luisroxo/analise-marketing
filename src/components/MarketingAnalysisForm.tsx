@@ -6,7 +6,7 @@ import { TextInput } from "./form/inputs/TextInput";
 import { TextareaInput } from "./form/inputs/TextareaInput";
 import { DropdownInput } from "./form/inputs/DropdownInput";
 import { MultipleChoiceInput } from "./form/inputs/MultipleChoiceInput";
-import { MultipleChoiceWithDetailsInput } from "./form/inputs/MultipleChoiceWithDetailsInput";
+import { RadioWithDetailsInput } from "./form/inputs/RadioWithDetailsInput";
 import { ScaleInput } from "./form/inputs/ScaleInput";
 import { ProgressBar } from "./form/ProgressBar";
 import { NavigationButtons } from "./form/NavigationButtons";
@@ -15,8 +15,8 @@ import { useToast } from "@/hooks/use-toast";
 interface FormData {
   // Seção 1: Fundamentos
   companyName: string;
-  businessType: string[];
-  businessTypeDetails: { [key: string]: string };
+  businessType: string;
+  businessTypeDetails: string;
   valueProposition: string;
   foundationYear: number;
   customerReach: string;
@@ -57,8 +57,8 @@ interface FormData {
 
 const initialFormData: FormData = {
   companyName: "",
-  businessType: [],
-  businessTypeDetails: {},
+  businessType: "",
+  businessTypeDetails: "",
   valueProposition: "",
   foundationYear: 2020,
   customerReach: "",
@@ -245,8 +245,8 @@ export const MarketingAnalysisForm = () => {
         source: 'lovable_form',
         data: {
           nome_empresa: formData.companyName,
-          tipo_negocio: Array.isArray(formData.businessType) ? formData.businessType.join(', ') : formData.businessType,
-          detalhes_tipos_negocio: JSON.stringify(formData.businessTypeDetails),
+          tipo_negocio: formData.businessType,
+          detalhes_tipo_negocio: formData.businessTypeDetails,
           proposta_valor: formData.valueProposition,
           ano_fundacao: formData.foundationYear,
           alcance_clientes: formData.customerReach,
@@ -346,13 +346,10 @@ export const MarketingAnalysisForm = () => {
     "Outros": "Ex: Descreva detalhadamente seu tipo de negócio e principais características"
   };
 
-  const updateBusinessTypeDetails = (businessType: string, details: string) => {
+  const updateBusinessTypeDetails = (details: string) => {
     setFormData(prev => ({
       ...prev,
-      businessTypeDetails: {
-        ...prev.businessTypeDetails,
-        [businessType]: details
-      }
+      businessTypeDetails: details
     }));
   };
 
@@ -556,8 +553,8 @@ export const MarketingAnalysisForm = () => {
             />
           </FormQuestion>
 
-          <FormQuestion title="🎯 Tipo do seu negócio" description="Selecione as categorias que melhor descrevem sua empresa" required>
-            <MultipleChoiceWithDetailsInput
+          <FormQuestion title="🎯 Tipo do seu negócio" description="Selecione a categoria que melhor descreve sua empresa" required>
+            <RadioWithDetailsInput
               value={formData.businessType}
               onChange={(value) => updateFormData("businessType", value)}
               options={businessTypeOptions}
