@@ -42,8 +42,10 @@ export const MultipleChoiceInput = ({ value, onChange, options, multiple = false
     );
   }
 
+  // Garante que o valor é sempre string para escolha única
+  const singleValue = Array.isArray(value) ? (value[0] || "") : value;
   return (
-    <RadioGroup value={value as string} onValueChange={onChange} className="space-y-3">
+    <RadioGroup value={singleValue} onValueChange={onChange} className="space-y-3">
       {options.map((option, index) => (
         <div key={index} className="flex items-center space-x-2">
           <RadioGroupItem value={option} id={`radio-${index}`} />

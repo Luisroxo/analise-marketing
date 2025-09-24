@@ -816,6 +816,7 @@ export const MarketingAnalysisForm = () => {
               value={formData.preferredContact}
               onChange={(value) => updateFormData("preferredContact", value)}
               options={contactOptions}
+              multiple={false}
             />
           </FormQuestion>
 
