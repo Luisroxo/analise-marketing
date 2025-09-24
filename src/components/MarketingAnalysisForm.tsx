@@ -6,6 +6,7 @@ import { TextInput } from "./form/inputs/TextInput";
 import { TextareaInput } from "./form/inputs/TextareaInput";
 import { DropdownInput } from "./form/inputs/DropdownInput";
 import { MultipleChoiceInput } from "./form/inputs/MultipleChoiceInput";
+import { MultipleChoiceWithDetailsInput } from "./form/inputs/MultipleChoiceWithDetailsInput";
 import { ScaleInput } from "./form/inputs/ScaleInput";
 import { ProgressBar } from "./form/ProgressBar";
 import { NavigationButtons } from "./form/NavigationButtons";
@@ -556,32 +557,14 @@ export const MarketingAnalysisForm = () => {
           </FormQuestion>
 
           <FormQuestion title="🎯 Tipo do seu negócio" description="Selecione as categorias que melhor descrevem sua empresa" required>
-            <div className="space-y-4">
-              <MultipleChoiceInput
-                value={formData.businessType}
-                onChange={(value) => updateFormData("businessType", value)}
-                options={businessTypeOptions}
-                multiple={true}
-              />
-              
-              {formData.businessType.length > 0 && (
-                <div className="space-y-4 p-4 bg-muted/30 rounded-lg border">
-                  <h4 className="text-sm font-medium text-foreground">Descreva cada tipo de negócio selecionado:</h4>
-                  {formData.businessType.map((businessType) => (
-                    <div key={businessType} className="space-y-2">
-                      <label className="block text-sm font-medium text-foreground">
-                        {businessType}:
-                      </label>
-                      <TextInput
-                        value={formData.businessTypeDetails[businessType] || ""}
-                        onChange={(value) => updateBusinessTypeDetails(businessType, value)}
-                        placeholder={businessTypeExamples[businessType]}
-                      />
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
+            <MultipleChoiceWithDetailsInput
+              value={formData.businessType}
+              onChange={(value) => updateFormData("businessType", value)}
+              options={businessTypeOptions}
+              details={formData.businessTypeDetails}
+              onDetailsChange={updateBusinessTypeDetails}
+              examples={businessTypeExamples}
+            />
           </FormQuestion>
 
           <FormQuestion 
