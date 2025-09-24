@@ -14,7 +14,8 @@ import { useToast } from "@/hooks/use-toast";
 interface FormData {
   // Seção 1: Fundamentos
   companyName: string;
-  businessType: string;
+  businessType: string[];
+  businessTypeDetails: string;
   valueProposition: string;
   foundationYear: number;
   customerReach: string;
@@ -55,7 +56,8 @@ interface FormData {
 
 const initialFormData: FormData = {
   companyName: "",
-  businessType: "",
+  businessType: [],
+  businessTypeDetails: "",
   valueProposition: "",
   foundationYear: 2020,
   customerReach: "",
@@ -242,7 +244,8 @@ export const MarketingAnalysisForm = () => {
         source: 'lovable_form',
         data: {
           nome_empresa: formData.companyName,
-          tipo_negocio: formData.businessType,
+          tipo_negocio: Array.isArray(formData.businessType) ? formData.businessType.join(', ') : formData.businessType,
+          detalhes_tipo_negocio: formData.businessTypeDetails,
           proposta_valor: formData.valueProposition,
           ano_fundacao: formData.foundationYear,
           alcance_clientes: formData.customerReach,
@@ -529,13 +532,25 @@ export const MarketingAnalysisForm = () => {
             />
           </FormQuestion>
 
-          <FormQuestion title="🎯 Tipo do seu negócio" description="Selecione a categoria que melhor descreve sua empresa" required>
-            <DropdownInput
+          <FormQuestion title="🎯 Tipo do seu negócio" description="Selecione as categorias que melhor descrevem sua empresa" required>
+            <MultipleChoiceInput
               value={formData.businessType}
               onChange={(value) => updateFormData("businessType", value)}
               options={businessTypeOptions}
-              placeholder="Selecione o tipo de negócio"
+              multiple={true}
             />
+            {formData.businessType.length > 0 && (
+              <div className="mt-4">
+                <label className="block text-sm font-medium text-foreground mb-2">
+                  Descreva brevemente seu tipo de negócio:
+                </label>
+                <TextInput
+                  value={formData.businessTypeDetails}
+                  onChange={(value) => updateFormData("businessTypeDetails", value)}
+                  placeholder="Ex: Loja de roupas femininas com foco em sustentabilidade"
+                />
+              </div>
+            )}
           </FormQuestion>
 
           <FormQuestion 
