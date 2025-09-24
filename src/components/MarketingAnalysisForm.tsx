@@ -533,24 +533,28 @@ export const MarketingAnalysisForm = () => {
           </FormQuestion>
 
           <FormQuestion title="🎯 Tipo do seu negócio" description="Selecione as categorias que melhor descrevem sua empresa" required>
-            <MultipleChoiceInput
-              value={formData.businessType}
-              onChange={(value) => updateFormData("businessType", value)}
-              options={businessTypeOptions}
-              multiple={true}
-            />
-            {formData.businessType.length > 0 && (
-              <div className="mt-4">
-                <label className="block text-sm font-medium text-foreground mb-2">
-                  Descreva brevemente seu tipo de negócio:
-                </label>
-                <TextInput
-                  value={formData.businessTypeDetails}
-                  onChange={(value) => updateFormData("businessTypeDetails", value)}
-                  placeholder="Ex: Loja de roupas femininas com foco em sustentabilidade"
+            <div className="flex gap-6 items-start">
+              <div className="flex-1">
+                <MultipleChoiceInput
+                  value={formData.businessType}
+                  onChange={(value) => updateFormData("businessType", value)}
+                  options={businessTypeOptions}
+                  multiple={true}
                 />
               </div>
-            )}
+              {formData.businessType.length > 0 && (
+                <div className="flex-1">
+                  <label className="block text-sm font-medium text-foreground mb-2">
+                    Descreva brevemente:
+                  </label>
+                  <TextInput
+                    value={formData.businessTypeDetails}
+                    onChange={(value) => updateFormData("businessTypeDetails", value)}
+                    placeholder="Ex: Loja de roupas femininas com foco em sustentabilidade"
+                  />
+                </div>
+              )}
+            </div>
           </FormQuestion>
 
           <FormQuestion 
